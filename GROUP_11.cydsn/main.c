@@ -12,14 +12,14 @@
 
 #define LDR_MUX 0x01
 #define TEMP_MUX 0x00
-#define HEADER 0xA0
+#define HEADER 0xA0 //I don't think we need header and tail in the buffer with i2c protocol
 #define TAIL 0xC0
 #define DEBUGGING   // For debug purposes only, comment this line in the final commit
 
 volatile int flag = 0;
-int32 ldr = 0, temp = 0, avg_ldr = 0, avg_temp = 0;
+int32 ldr = 0, temp = 0, avg_ldr = 0, avg_temp = 0; //I think we can use int16 to save memory
 char message[25] = {"\0"};
-int numSamp = 5;
+int numSamp = 5; 
 
 int main(void)
 {
@@ -54,7 +54,7 @@ int main(void)
             5. Repeating the procedure with the ldr sensor (without point 2.)
             6. Put the timer flag to 0 -> wait 4 ms before a new ADC reading
         */
-        for(int i = 0; i < numSamp; i++){
+        for(int i = 0; i < numSamp; i++){ //we are already in a for loop, I think it's better to exploit it
             Analog_MUX_FastSelect(TEMP_MUX);
             while(!flag);
             ldr = ADC_Read32();
@@ -82,8 +82,8 @@ int main(void)
             /*  Use these 2 lines if you wanna monitor the sensors using CoolTerm
                 Bit rate 57600
             */
-            //sprintf(message,"Temp: %ld mV; LDR: %ld mV\r\n",avg_temp,avg_ldr);
-            //UART_PutString(message);
+            sprintf(message,"Temp: %ld mV; LDR: %ld mV\r\n",avg_temp,avg_ldr);
+            UART_PutString(message);
             
             /*  Use these following lines if you wanna monitor the sensors using Bridge Control Panel
                 rx8 [h=A0] @1ldr @0ldr @1temp @0temp [t=C0], using 2 int variables ldr and temp
