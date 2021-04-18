@@ -1,21 +1,103 @@
 /*
-*
-*
+*   \ main.c file
+*   \ Authors: Riccardo Mustoni, Alessia Pesenti and Mattia Randazzo
+*   \ Date: 04/27/2021
+*   \ Assignment 03 - Analog sampling and I2C communication
+*   \ Group 11
 */
 
 #include "project.h"
 #include "InterruptRoutines.h"
+#include "stdio.h"
+
+#define LDR_MUX 0x01
+#define TEMP_MUX 0x00
+#define HEADER 0xA0
+#define TAIL 0xC0
+#define DEBUGGING   // For debug purposes only, comment this line in the final commit
+
+volatile int flag = 0;
+int32 ldr = 0, temp = 0, avg_ldr = 0, avg_temp = 0;
+char message[25] = {"\0"};
+int numSamp = 5;
 
 int main(void)
 {
-    isr_Timer_StartEx(Custom_Timer_ISR);
     CyGlobalIntEnable; /* Enable global interrupts. */
 
-    /* Place your initialization/startup code here (e.g. MyInst_Start()) */
-
+    /* Initialization/startup code */
+    DataBuffer[0] = HEADER;
+    DataBuffer[TRANSMIT_BUFFER_SIZE-1] = TAIL;
+    
+    isr_Timer_StartEx(Custom_ISR_ADC);
+    Analog_MUX_Init();
+    Analog_MUX_Start();
+    UART_Start();
+    ADC_Start();
+    Timer_Start();
+    
+    UART_PutString("\f");
+    
+    ADC_StartConvert();
+    
     for(;;)
     {
-        /* Place your application code here. */
+        /* Initialising variables for average computing */
+        avg_ldr = 0;
+        avg_temp = 0;
+        
+        /* for loop, reading numSamp samples from the ADC:
+            1. Setting the MUX channel (temp sensor)
+            2. Waiting the timer before reading the value (4 ms)
+            3. Reading the temp and checking it to be between 0 and 65535
+            4. Summing temp with its previous values
+            5. Repeating the procedure with the ldr sensor (without point 2.)
+            6. Put the timer flag to 0 -> wait 4 ms before a new ADC reading
+        */
+        for(int i = 0; i < numSamp; i++){
+            Analog_MUX_FastSelect(TEMP_MUX);
+            while(!flag);
+            ldr = ADC_Read32();
+            if(ldr > 65535)     ldr = 65535;
+            if(ldr < 0)         ldr = 0;
+            avg_ldr = avg_ldr + ldr;
+            Analog_MUX_FastSelect(LDR_MUX);
+            temp = ADC_Read32();
+            if(temp > 65535)    temp = 65535;
+            if(temp < 0)        temp = 0;
+            avg_temp = avg_temp + temp;
+            flag = 0;
+        }
+        /* Average calculation using numSamp samples */
+        avg_ldr = avg_ldr / numSamp;
+        avg_temp = avg_temp / numSamp;
+        
+        /* Convertion to mV */
+        avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
+        avg_temp = ADC_CountsTo_mVolts(avg_temp);
+        
+        /* UART communication for debugging */
+        #ifdef DEBUGGING
+            
+            /*  Use these 2 lines if you wanna monitor the sensors using CoolTerm
+                Bit rate 57600
+            */
+            //sprintf(message,"Temp: %ld mV; LDR: %ld mV\r\n",avg_temp,avg_ldr);
+            //UART_PutString(message);
+            
+            /*  Use these following lines if you wanna monitor the sensors using Bridge Control Panel
+                rx8 [h=A0] @1ldr @0ldr @1temp @0temp [t=C0], using 2 int variables ldr and temp
+                Bit rate 57600
+            */
+            DataBuffer[1] = avg_ldr >> 8;
+            DataBuffer[2] = avg_ldr & 0xFF;
+
+            DataBuffer[3] = avg_temp >> 8;
+            DataBuffer[4] = avg_temp & 0xFF;
+            
+            UART_PutArray(DataBuffer,TRANSMIT_BUFFER_SIZE);
+            
+        #endif
     }
 }
 
