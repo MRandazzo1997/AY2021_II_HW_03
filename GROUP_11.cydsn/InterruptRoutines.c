@@ -7,6 +7,11 @@
 */
 
 #include "InterruptRoutines.h"
+#include "I2C_Communication.h"
+#include "I2C_Communication.c"
+#include "project.h"
+
+
 extern volatile int flag;
 
 CY_ISR(Custom_ISR_ADC)
@@ -17,6 +22,34 @@ CY_ISR(Custom_ISR_ADC)
        while the ADC reading is computed in the main.c file
     */
     flag = 1;
+}
+
+//switch betwen status and turn on-off LED
+void EZI2C_ISR_ExitCallback(void){
+    
+    define_status = (SlaveBuffer[0] & 0b00000011);         
+    
+    switch(define_status) {
+        
+    case DEVICE_STOPPED: {stop();        
+                         break;}
+    
+    case CHANN_TEMP:    {Pin_LED_Write(LED_OFF);
+                         start();        
+                         break;}
+    
+    case CHANN_LDR:     {Pin_LED_Write(LED_OFF);
+                         start();        
+                         break;}
+    
+    case CHANN_BOTH:     {Pin_LED_Write(LED_ON);
+                         start();
+                         break;}
+    
+    default:            {Pin_LED_Write(LED_OFF);
+                         break;}
+     
+    }
 }
 
 /* [] END OF FILE */

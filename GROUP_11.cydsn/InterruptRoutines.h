@@ -10,14 +10,26 @@
     
     #define __INTERRUPT_ROUTINES_H__
     #include "project.h"
+    #include "I2C_Communication.h"
+    #include "I2C_Communication.c"
     
-    #define BYTES_TO_SEND 4
-    #define TRANSMIT_BUFFER_SIZE 1+BYTES_TO_SEND+1 //It should be greater, the slave buffer has 2 control registers + who_am_i
+    //UART
+    /*  #define BYTES_TO_SEND 4
+    #define TRANSMIT_BUFFER_SIZE 1+BYTES_TO_SEND+1 
+    uint8 DataBuffer[TRANSMIT_BUFFER_SIZE];
+    */  
+    
+    volatile uint8_t define_status;
     
     CY_ISR_PROTO(Custom_ISR_ADC);
     
-    uint8 DataBuffer[TRANSMIT_BUFFER_SIZE];
+
     
 #endif
 
 /* [] END OF FILE */
+
+
+
+
+
