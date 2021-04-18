@@ -10,8 +10,8 @@
 #include "InterruptRoutines.h"
 #include "stdio.h"
 
-#define LDR_MUX 0x01
-#define TEMP_MUX 0x00
+#define LDR_MUX 0x00
+#define TEMP_MUX 0x01
 #define HEADER 0xA0 //I don't think we need header and tail in the buffer with i2c protocol
 #define TAIL 0xC0
 #define DEBUGGING   // For debug purposes only, comment this line in the final commit
@@ -55,13 +55,13 @@ int main(void)
             6. Put the timer flag to 0 -> wait 4 ms before a new ADC reading
         */
         for(int i = 0; i < numSamp; i++){ //we are already in a for loop, I think it's better to exploit it
-            Analog_MUX_FastSelect(TEMP_MUX);
+            Analog_MUX_FastSelect(LDR_MUX);
             while(!flag);
             ldr = ADC_Read32();
             if(ldr > 65535)     ldr = 65535;
             if(ldr < 0)         ldr = 0;
             avg_ldr = avg_ldr + ldr;
-            Analog_MUX_FastSelect(LDR_MUX);
+            Analog_MUX_FastSelect(TEMP_MUX);
             temp = ADC_Read32();
             if(temp > 65535)    temp = 65535;
             if(temp < 0)        temp = 0;
@@ -95,7 +95,7 @@ int main(void)
             DataBuffer[3] = avg_temp >> 8;
             DataBuffer[4] = avg_temp & 0xFF;
             
-            UART_PutArray(DataBuffer,TRANSMIT_BUFFER_SIZE);
+            //UART_PutArray(DataBuffer,TRANSMIT_BUFFER_SIZE);
             
         #endif
     }
