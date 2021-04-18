@@ -18,15 +18,13 @@
 
 void start()
 {
-    Timer_Start(); //(?)
     ADC_Start();
-    EZI2C_Start();
-     
+    ADC_StartConvert();
+   
 }
 
 void stop()
 {
-    Timer_Stop(); //(?)
     ADC_Stop();
     Pin_LED_Write(LED_OFF);
     

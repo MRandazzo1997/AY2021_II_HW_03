@@ -30,12 +30,12 @@ int main(void)
     /* Initialization/startup code */
     isr_Timer_StartEx(Custom_ISR_ADC);
     void start(); 
-    ADC_StartConvert();
+    Timer_Start();
+    EZI2C_Start();
     
     Analog_MUX_Init();
     Analog_MUX_Start();
     
-    ADC_StartConvert();
     
     EZI2C_SetBuffer1(SLAVE_BUFFER_SIZE, SLAVE_BUFFER_RW ,SlaveBuffer);
     
@@ -81,6 +81,7 @@ int main(void)
                 
                 if(i < numSamp)
                 {   Analog_MUX_FastSelect(TEMP_MUX);
+                    while(!flag);
                     temp = ADC_Read32();
                     if(temp > 65535)    temp = 65535;
                     if(temp < 0)        temp = 0;
