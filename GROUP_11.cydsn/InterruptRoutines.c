@@ -7,8 +7,8 @@
 */
 
 #include "InterruptRoutines.h"
-#include "I2C_Communication.h"
-#include "I2C_Communication.c"
+//#include "I2C_Communication.h"
+//#include "I2C_Communication.c"
 #include "project.h"
 
 
@@ -27,6 +27,7 @@ CY_ISR(Custom_ISR_ADC)
 //switch betwen status and turn on-off LED
 void EZI2C_ISR_ExitCallback(void){
     
+    numSamp = SlaveBuffer[0] & 0b00111100;  // Updating numSamp via W on control register 0
     define_status = (SlaveBuffer[0] & 0b00000011);         
     
     switch(define_status) {

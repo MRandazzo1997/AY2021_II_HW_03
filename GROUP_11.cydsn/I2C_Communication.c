@@ -10,59 +10,57 @@
  * ========================================
 */
 
-
-#include "project.h"
-#include "I2C_Communication.h"
-
-
-
-void start()
-{
-    ADC_Start();
-    ADC_StartConvert();
-   
-}
-
-void stop()
-{
-    ADC_Stop();
-    Pin_LED_Write(LED_OFF);
+#ifndef __FUNCTIONS__       // I have a build error: multiple def of start, stop ...
+    #define __FUNCTIONS__   // I am trying to fix it
     
-}
-
-
-void SetBuffer(int16 temp, int16 light){  //to be implemented how to write on 0 and 1
+    #include "project.h"
+    #include "I2C_Communication.h"
     
-    SlaveBuffer[0] = ctrlReg0;
-    SlaveBuffer[1] = ctrlReg1;
-    SlaveBuffer[2] = WHO_AM_I;
-    /*Convert int16 to char*/
-    if(light != 0)
+    void start()
     {
-        SlaveBuffer[4] = light & 0xFF;
-        SlaveBuffer[3] = (light >> 8) & 0xFF;
+        ADC_Start();
+        ADC_StartConvert();
+       
     }
-    else
+
+    void stop()
     {
-        SlaveBuffer[3] = 0;
-        SlaveBuffer[4] = 0;
+        ADC_Stop();
+        Pin_LED_Write(LED_OFF);
+        
     }
-    if(temp != 0)
-    {
-        SlaveBuffer[6] = temp & 0xFF;
-        SlaveBuffer[5] = (temp >> 8) & 0xFF;
-    }
-    else
-    {
-        SlaveBuffer[5] = 0;
-        SlaveBuffer[6] = 0;
-    }
-    
-}
 
 
+    void SetBuffer(int32 temp, int32 light){  //to be implemented how to write on 0 and 1
+        
+        SlaveBuffer[0] = ctrlReg0;
+        SlaveBuffer[1] = ctrlReg1;
+        SlaveBuffer[2] = WHO_AM_I;
+        /*Convert int32 to char*/
+        if(light != 0)
+        {
+            SlaveBuffer[4] = light & 0xFF;
+            SlaveBuffer[3] = (light >> 8) & 0xFF;
+        }
+        else
+        {
+            SlaveBuffer[3] = 0;
+            SlaveBuffer[4] = 0;
+        }
+        if(temp != 0)
+        {
+            SlaveBuffer[6] = temp & 0xFF;
+            SlaveBuffer[5] = (temp >> 8) & 0xFF;
+        }
+        else
+        {
+            SlaveBuffer[5] = 0;
+            SlaveBuffer[6] = 0;
+        }
+        
+    }
 
-
+#endif
 
 
 

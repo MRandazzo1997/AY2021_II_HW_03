@@ -8,6 +8,7 @@
 
 #include "project.h"
 #include "InterruptRoutines.h"
+//#include "I2C_Communication.h"
 #include "stdio.h"
 
 #define LDR_MUX 0x00
@@ -20,7 +21,7 @@
 volatile int flag = 0;
 int32 ldr = 0, temp = 0, avg_ldr = 0, avg_temp = 0;
 char message[25] = {"\0"};
-int numSamp = 5, i = 0; 
+int i = 0;
 
 int main(void)
 {
@@ -56,7 +57,7 @@ int main(void)
         /*###############*/
         /*  IF SOLUTION  */
         /*###############*/
-        
+        numSamp = SlaveBuffer[0] & 0b00111100;
         if(i == START)
         {
             
@@ -92,7 +93,7 @@ int main(void)
                 else if(i == numSamp)
                 {   
                     avg_temp = avg_temp / numSamp;
-                    avg_temp = ADC_CountsTo_mVolts(avg_temp);
+                    //avg_temp = ADC_CountsTo_mVolts(avg_temp);
                       
                     SetBuffer(avg_temp, avg_ldr);  
                     // i have to write 0 on the other ones? --> I have implemented SetBuffer in order to do that
@@ -118,7 +119,7 @@ int main(void)
                 else if(i == numSamp)
                 {   
                     avg_ldr = avg_ldr / numSamp;
-                    avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
+                    //avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
                       
                     SetBuffer(avg_temp, avg_ldr);  
                     i=0;
@@ -152,8 +153,8 @@ int main(void)
                     avg_temp = avg_temp / numSamp;
                     
                     /* Convertion to mV */
-                    avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
-                    avg_temp = ADC_CountsTo_mVolts(avg_temp);
+                    //avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
+                    //avg_temp = ADC_CountsTo_mVolts(avg_temp);
                     
                     /*  Use these following lines if you wanna monitor the sensors using Bridge Control Panel
                             rx8 [h=A0] @1ldr @0ldr @1temp @0temp [t=C0], using 2 int variables ldr and temp
@@ -179,6 +180,7 @@ int main(void)
          
                 }
                 break;
+        }
     }
 }
 
