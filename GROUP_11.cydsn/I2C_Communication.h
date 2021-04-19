@@ -15,8 +15,8 @@
     #define WHO_AM_I  0xBC
     #define SLAVE_BUFFER_RW  2
     uint8_t SlaveBuffer[SLAVE_BUFFER_SIZE];
-    uint8_t ctrlReg0 = 0;
-    uint8_t ctrlReg1 = 0;
+    uint8_t ctrlReg0;
+    uint8_t ctrlReg1;
     
     
     #define DEVICE_STOPPED         0x00
