@@ -1,17 +1,10 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
+/** 
+*   \ I2C_Communication.c file
+*   \ Authors: Riccardo Mustoni, Alessia Pesenti and Mattia Randazzo
+*   \ Date: 04/27/2021
+*   \ Assignment 03 - Analog sampling and I2C communication
+*   \ Group 11
 */
-
-#ifndef __FUNCTIONS__       // I have a build error: multiple def of start, stop ...
-    #define __FUNCTIONS__   // I am trying to fix it
     
     #include "project.h"
     #include "I2C_Communication.h"
@@ -59,12 +52,5 @@
         }
         
     }
-
-#endif
-
-
-
-
-
 
 /* [] END OF FILE */

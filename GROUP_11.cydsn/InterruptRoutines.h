@@ -10,8 +10,8 @@
     
     #define __INTERRUPT_ROUTINES_H__
     #include "project.h"
-    //#include "I2C_Communication.h"
-    #include "I2C_Communication.c"
+    #include "I2C_Communication.h"
+    //#include "I2C_Communication.c"
     
     //UART
     /*  #define BYTES_TO_SEND 4

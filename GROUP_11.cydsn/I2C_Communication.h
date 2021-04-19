@@ -1,14 +1,11 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
+/*
+*   \ I2C_Communication.h file
+*   \ Authors: Riccardo Mustoni, Alessia Pesenti and Mattia Randazzo
+*   \ Date: 04/27/2021
+*   \ Assignment 03 - Analog sampling and I2C communication
+*   \ Group 11
 */
+
 #ifndef __I2C_COMMUNICATION_H__
     #define __I2C_COMMUNICATION_H__
     
@@ -31,6 +28,9 @@
     #define LED_ON        1
     #define LED_OFF       0
     
+    void stop();
+    void start();
+    void SetBuffer(int32 temp, int32 light);
     
 #endif
 

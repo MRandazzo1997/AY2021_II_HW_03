@@ -10,8 +10,6 @@
 //#include "I2C_Communication.h"
 //#include "I2C_Communication.c"
 #include "project.h"
-#include "stdlib.h"
-
 
 extern volatile int flag;
 uint8_t nSamp;
@@ -29,7 +27,7 @@ CY_ISR(Custom_ISR_ADC)
 //switch betwen status and turn on-off LED
 void EZI2C_ISR_ExitCallback(void){
     
-    nSamp = SlaveBuffer[0] & 0b00111100;  // Updating numSamp via W on control register 0
+    nSamp = ctrlReg0 & 0b00111100;  // Updating numSamp via W on control register 0
     switch(nSamp){
         case 0b00000000:    numSamp = 1;    break;
         case 0b00000100:    numSamp = 2;    break;
@@ -40,7 +38,7 @@ void EZI2C_ISR_ExitCallback(void){
         case 0b00011000:    numSamp = 7;    break;
         case 0b00011100:    numSamp = 8;    break;
         case 0b00100000:    numSamp = 9;    break;
-        case 0b00100100:    numSamp = 10;    break;
+        case 0b00100100:    numSamp = 10;   break;
         case 0b00101000:    numSamp = 11;   break;
         case 0b00101100:    numSamp = 12;   break;
         case 0b00110000:    numSamp = 13;   break;
@@ -49,7 +47,8 @@ void EZI2C_ISR_ExitCallback(void){
         case 0b00111100:    numSamp = 16;   break;
         default:                            break;
     }
-    define_status = (SlaveBuffer[0] & 0b00000011);         
+    
+    define_status = (ctrlReg0 & 0b00000011);         
     
     switch(define_status) {
         
