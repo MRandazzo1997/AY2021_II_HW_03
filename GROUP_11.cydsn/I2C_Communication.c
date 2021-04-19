@@ -31,11 +31,32 @@ void stop()
 }
 
 
-void SetBuffer(){  //to be implemented how to write on 0 and 1
+void SetBuffer(int16 temp, int16 light){  //to be implemented how to write on 0 and 1
     
-    SlaveBuffer[0] 
-    SlaveBuffer[1] 
+    SlaveBuffer[0] = ctrlReg0;
+    SlaveBuffer[1] = ctrlReg1;
     SlaveBuffer[2] = WHO_AM_I;
+    /*Convert int16 to char*/
+    if(light != 0)
+    {
+        SlaveBuffer[4] = light & 0xFF;
+        SlaveBuffer[3] = (light >> 8) & 0xFF;
+    }
+    else
+    {
+        SlaveBuffer[3] = 0;
+        SlaveBuffer[4] = 0;
+    }
+    if(temp != 0)
+    {
+        SlaveBuffer[6] = temp & 0xFF;
+        SlaveBuffer[5] = (temp >> 8) & 0xFF;
+    }
+    else
+    {
+        SlaveBuffer[5] = 0;
+        SlaveBuffer[6] = 0;
+    }
     
 }
 

@@ -36,10 +36,9 @@ int main(void)
     Analog_MUX_Init();
     Analog_MUX_Start();
     
+    SetBuffer(avg_temp, avg_ldr);
     
-    EZI2C_SetBuffer1(SLAVE_BUFFER_SIZE, SLAVE_BUFFER_RW ,SlaveBuffer);
-    
-    SetBuffer();
+    EZI2C_SetBuffer1(SLAVE_BUFFER_SIZE, SLAVE_BUFFER_RW, SlaveBuffer);
     
     
     
@@ -91,23 +90,41 @@ int main(void)
                 }  
                 
                 else if(i == numSamp)
-                {    avg_temp = avg_temp / numSamp;
-                     avg_temp = ADC_CountsTo_mVolts(avg_temp);
-                    
-                  SlaveBuffer[3] = avg_temp >> 8;
-                  SlaveBuffer[4] = avg_temp & 0xFF;  
-                // i have to write 0 on the other ones? 
-                 i=0;
+                {   
+                    avg_temp = avg_temp / numSamp;
+                    avg_temp = ADC_CountsTo_mVolts(avg_temp);
+                      
+                    SetBuffer(avg_temp, avg_ldr);  
+                    // i have to write 0 on the other ones? --> I have implemented SetBuffer in order to do that
+                    i=0;
                 }    
-                 break;
+                break;
             
                     
             case CHANN_LDR:
                     
-                    //same as before
+                if(i < numSamp)
+                {   
+                    Analog_MUX_FastSelect(LDR_MUX);
+                    while(!flag);
+                    ldr = ADC_Read32();
+                    if(ldr > 65535)    ldr = 65535;
+                    if(ldr < 0)       ldr = 0;
+                    avg_ldr = avg_ldr + ldr;
+                    flag = 0;
+                    i++;   
+                }  
+                
+                else if(i == numSamp)
+                {   
+                    avg_ldr = avg_ldr / numSamp;
+                    avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
+                      
+                    SetBuffer(avg_temp, avg_ldr);  
+                    i=0;
+                } 
                     
-                    
-                    break;
+                break;
                 
                     
             case CHANN_BOTH:        
@@ -141,13 +158,10 @@ int main(void)
                     /*  Use these following lines if you wanna monitor the sensors using Bridge Control Panel
                             rx8 [h=A0] @1ldr @0ldr @1temp @0temp [t=C0], using 2 int variables ldr and temp
                             Bit rate 57600
-                     */
-                        SlaveBuffer[1] = avg_ldr >> 8;
-                        SlaveBuffer[2] = avg_ldr & 0xFF;
-                        SlaveBuffer[3] = avg_temp >> 8;
-                        SlaveBuffer[4] = avg_temp & 0xFF;  
+                    */
+                    SetBuffer(avg_temp, avg_ldr);
                      
-                     i=0;
+                    i=0;
                      
                         
                 /* UART communication for debugging */
