@@ -19,7 +19,8 @@
     uint8 DataBuffer[TRANSMIT_BUFFER_SIZE];
     */  
     
-    volatile uint8_t define_status, numSamp;
+    volatile uint8_t define_status;
+    int numSamp;
     
     CY_ISR_PROTO(Custom_ISR_ADC);
     
