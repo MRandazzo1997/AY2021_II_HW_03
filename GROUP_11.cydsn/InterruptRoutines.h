@@ -10,7 +10,7 @@
     
     #define __INTERRUPT_ROUTINES_H__
     #include "project.h"
-    #include "I2C_Communication.h"
+    //#include "I2C_Communication.h"
     #include "I2C_Communication.c"
     
     //UART
