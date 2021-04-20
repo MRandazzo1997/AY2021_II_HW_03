@@ -58,6 +58,7 @@ int main(void)
             avg_ldr = 0;
             avg_temp = 0;
             numSamp = (SlaveBuffer[0] & 0b00111100) >> 2;
+            if(numSamp == 0)    define_status = DEVICE_STOPPED;
         }
         
         /* for loop, reading numSamp samples from the ADC:
