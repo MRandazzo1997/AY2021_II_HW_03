@@ -8,7 +8,7 @@
 
 #include "project.h"
 #include "InterruptRoutines.h"
-//#include "I2C_Communication.h"
+#include "I2C_Communication.h"
 #include "stdio.h"
 
 #define LDR_MUX 0x00
@@ -19,9 +19,11 @@
 #define DEBUGGING   // For debug purposes only, comment this line in the final commit
 
 volatile int flag = 0;
+uint8_t nSamp, define_status;
 int32 ldr = 0, temp = 0, avg_ldr = 0, avg_temp = 0;
 char message[25] = {"\0"};
-int i = 0;
+
+int i = 0, numSamp, transmit_flag = 0;
 
 int main(void)
 {
@@ -30,18 +32,19 @@ int main(void)
     
     /* Initialization/startup code */
     isr_Timer_StartEx(Custom_ISR_ADC);
-    void start(); 
+    start();
     Timer_Start();
     EZI2C_Start();
     
     Analog_MUX_Init();
     Analog_MUX_Start();
     
+    SlaveBuffer[0] = 0x00;
+    SlaveBuffer[1] = 0x00;
+    SlaveBuffer[2] = WHO_AM_I;
     SetBuffer(avg_temp, avg_ldr);
     
     EZI2C_SetBuffer1(SLAVE_BUFFER_SIZE, SLAVE_BUFFER_RW, SlaveBuffer);
-    
-    
     
     //UART_Start();
    
@@ -57,10 +60,31 @@ int main(void)
         /*###############*/
         /*  IF SOLUTION  */
         /*###############*/
-        numSamp = SlaveBuffer[0] & 0b00111100;
+        //numSamp = SlaveBuffer[0] & 0b00111100;
+        
+        nSamp = SlaveBuffer[0] & 0b00111100;  // Updating numSamp via W on control register 0
+        switch(nSamp){
+            case 0b00000000:    define_status = DEVICE_STOPPED;    break;
+            case 0b00000100:    numSamp = 1;    break;
+            case 0b00001000:    numSamp = 2;    break;
+            case 0b00001100:    numSamp = 3;    break;
+            case 0b00010000:    numSamp = 4;    break;
+            case 0b00010100:    numSamp = 5;    break;
+            case 0b00011000:    numSamp = 6;    break;
+            case 0b00011100:    numSamp = 7;    break;
+            case 0b00100000:    numSamp = 8;    break;
+            case 0b00100100:    numSamp = 9;    break;
+            case 0b00101000:    numSamp = 10;   break;
+            case 0b00101100:    numSamp = 11;   break;
+            case 0b00110000:    numSamp = 12;   break;
+            case 0b00110100:    numSamp = 13;   break;
+            case 0b00111000:    numSamp = 14;   break;
+            case 0b00111100:    numSamp = 15;   break;
+            default:                            break;
+        }
+        
         if(i == START)
         {
-            
             /* Initialising variables for average computing each time the counter is reset*/
             avg_ldr = 0;
             avg_temp = 0;
@@ -75,10 +99,16 @@ int main(void)
             6. Put the timer flag to 0 -> wait 4 ms before a new ADC reading
             7. Increment the sample counter
         */
+        define_status = (SlaveBuffer[0] & 0b00000011);
         switch (define_status){   //to be implemented how to write register 1 and 2
-       
-            case CHANN_TEMP:
+            case DEVICE_STOPPED:
+                stop();
+                break;
                 
+                
+            case CHANN_TEMP:
+                Pin_LED_Write(LED_OFF);
+                start();
                 if(i < numSamp)
                 {   Analog_MUX_FastSelect(TEMP_MUX);
                     while(!flag);
@@ -103,7 +133,9 @@ int main(void)
             
                     
             case CHANN_LDR:
-                    
+                Pin_LED_Write(LED_OFF);
+                start();
+                UART_PutChar(numSamp);
                 if(i < numSamp)
                 {   
                     Analog_MUX_FastSelect(LDR_MUX);
@@ -118,6 +150,7 @@ int main(void)
                 
                 else if(i == numSamp)
                 {   
+                    transmit_flag = 1;
                     avg_ldr = avg_ldr / numSamp;
                     //avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
                       
@@ -129,7 +162,8 @@ int main(void)
                 
                     
             case CHANN_BOTH:        
-         
+                Pin_LED_Write(LED_ON);
+                start();
                 if(i < numSamp)
                 {
                     Analog_MUX_FastSelect(LDR_MUX);
@@ -148,6 +182,7 @@ int main(void)
                 }
                 else if(i == numSamp)
                 {
+                    
                     /* Average calculation using numSamp samples */
                     avg_ldr = avg_ldr / numSamp;
                     avg_temp = avg_temp / numSamp;
@@ -167,18 +202,23 @@ int main(void)
                         
                 /* UART communication for debugging */
                 #ifdef DEBUGGING
+                    if(transmit_flag){
                     
                     /*  Use these 2 lines if you wanna monitor the sensors using CoolTerm
                         Bit rate 57600
                     */
                     sprintf(message,"Temp: %ld mV; LDR: %ld mV\r\n",avg_temp,avg_ldr);
                     UART_PutString(message);
-                    
+                    }
                    // UART_PutArray(SlaveBuffer,TRANSMIT_BUFFER_SIZE);
-                    
+
                 #endif
          
                 }
+                break;
+                
+                
+            default:
                 break;
         }
     }

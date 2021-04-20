@@ -20,9 +20,9 @@
     
     
     #define DEVICE_STOPPED         0x00
-    #define CHANN_TEMP             0x01       
-    #define CHANN_LDR              0x02 
-    #define CHANN_BOTH             0x03 
+    #define CHANN_TEMP             0x01
+    #define CHANN_LDR              0x02
+    #define CHANN_BOTH             0x03
     
     
     #define LED_ON        1

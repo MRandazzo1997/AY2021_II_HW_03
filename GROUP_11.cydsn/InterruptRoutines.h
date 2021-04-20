@@ -10,8 +10,6 @@
     
     #define __INTERRUPT_ROUTINES_H__
     #include "project.h"
-    #include "I2C_Communication.h"
-    //#include "I2C_Communication.c"
     
     //UART
     /*  #define BYTES_TO_SEND 4
@@ -19,8 +17,7 @@
     uint8 DataBuffer[TRANSMIT_BUFFER_SIZE];
     */  
     
-    volatile uint8_t define_status;
-    int numSamp;
+    //volatile uint8_t define_status;
     
     CY_ISR_PROTO(Custom_ISR_ADC);
     

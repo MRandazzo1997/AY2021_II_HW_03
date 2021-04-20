@@ -26,9 +26,6 @@
 
     void SetBuffer(int32 temp, int32 light){  //to be implemented how to write on 0 and 1
         
-        SlaveBuffer[0] = ctrlReg0;
-        SlaveBuffer[1] = ctrlReg1;
-        SlaveBuffer[2] = WHO_AM_I;
         /*Convert int32 to char*/
         if(light != 0)
         {
