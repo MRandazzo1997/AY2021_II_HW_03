@@ -24,7 +24,7 @@
     }
 
 
-    void SetBuffer(int32 temp, int32 light){  //to be implemented how to write on 0 and 1
+    void SetBuffer(int32 temp, int32 light){ 
         
         /*Convert int32 to char*/
         if(light != 0)

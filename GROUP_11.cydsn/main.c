@@ -31,14 +31,14 @@ int main(void)
     /* Initialization/startup code */
     isr_Timer_StartEx(Custom_ISR_ADC);
     start();
-    Timer_Start();
+    //Timer_Start();
     EZI2C_Start();
     
     Analog_MUX_Init();
     Analog_MUX_Start();
     
     SlaveBuffer[0] = 0x00;
-    SlaveBuffer[1] = 0x00;
+    SlaveBuffer[1] =0x00;
     SlaveBuffer[2] = WHO_AM_I;
     SetBuffer(avg_temp, avg_ldr);
     
@@ -52,13 +52,22 @@ int main(void)
         /*  IF SOLUTION  */
         /*###############*/
         
-        if(i == START)
+        if(i == START || Timer_ReadPeriod() == 0)
         {
             /* Initialising variables for average computing each time the counter is reset*/
             avg_ldr = 0;
             avg_temp = 0;
+            
+            /*Extract from register1 number of sample to be averaged*/
             numSamp = (SlaveBuffer[0] & 0b00111100) >> 2;
             if(numSamp == 0)    define_status = DEVICE_STOPPED;
+            
+            /*Reset timer and set new period*/
+            Timer_WritePeriod(SlaveBuffer[1]);
+            Control_Reg_Reset_Write(1);
+            CyDelay(1);
+            Control_Reg_Reset_Write(0);
+            Timer_Start();
         }
         
         /* for loop, reading numSamp samples from the ADC:
@@ -69,7 +78,7 @@ int main(void)
             5. Repeating the procedure with the ldr sensor (without point 2.)
             6. Put the timer flag to 0 -> wait 4 ms before a new ADC reading
             7. Increment the sample counter
-        */
+        */ 
         define_status = (SlaveBuffer[0] & 0b00000011);
         switch (define_status){   //to be implemented how to write register 1 and 2
             case DEVICE_STOPPED:
@@ -80,8 +89,9 @@ int main(void)
             case CHANN_TEMP:
                 Pin_LED_Write(LED_OFF);
                 start();
-                if(i < numSamp)
-                {   Analog_MUX_FastSelect(TEMP_MUX);
+                if(i < numSamp && Timer_ReadPeriod()!=0)
+                {   
+                    Analog_MUX_FastSelect(TEMP_MUX);
                     while(!flag);
                     temp = ADC_Read32();
                     if(temp > 65535)    temp = 65535;
@@ -104,7 +114,7 @@ int main(void)
             case CHANN_LDR:
                 Pin_LED_Write(LED_OFF);
                 start();
-                if(i < numSamp)
+                if(i < numSamp && Timer_ReadPeriod()!=0)
                 {   
                     Analog_MUX_FastSelect(LDR_MUX);
                     while(!flag);
@@ -130,7 +140,7 @@ int main(void)
             case CHANN_BOTH:        
                 Pin_LED_Write(LED_ON);
                 start();
-                if(i < numSamp)
+                if(i < numSamp && Timer_ReadPeriod()!=0)
                 {
                     Analog_MUX_FastSelect(LDR_MUX);
                     while(!flag);
@@ -162,7 +172,7 @@ int main(void)
                             Bit rate 57600
                     */
                     SetBuffer(avg_temp, avg_ldr);
-                     
+                    
                     i=0;         
                 }
                 break;
