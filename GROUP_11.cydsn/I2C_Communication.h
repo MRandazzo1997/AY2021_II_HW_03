@@ -26,9 +26,15 @@
     #define LED_ON        1
     #define LED_OFF       0
     
+    int32 ldr,temp, avg_ldr, avg_temp;
+    
+    
     void stop();
     void start();
+    void get_temp();
+    void get_ldr();
     void SetBuffer(int32 temp, int32 light);
+    
     
 #endif
 

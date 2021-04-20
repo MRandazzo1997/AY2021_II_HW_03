@@ -18,7 +18,6 @@
 
 volatile int flag = 0;
 uint8_t nSamp, define_status;
-int32 ldr = 0, temp = 0, avg_ldr = 0, avg_temp = 0;
 char message[25] = {"\0"};
 
 int i = 0, numSamp;
@@ -40,7 +39,7 @@ int main(void)
     SlaveBuffer[0] = 0x00;
     SlaveBuffer[1] =0x00;
     SlaveBuffer[2] = WHO_AM_I;
-    SetBuffer(avg_temp, avg_ldr);
+    SetBuffer(0,0);  //changed because i cant't define them 0 in communication.h or it gives me 1 exit status 
     
     EZI2C_SetBuffer1(SLAVE_BUFFER_SIZE, SLAVE_BUFFER_RW, SlaveBuffer);
     
@@ -93,10 +92,7 @@ int main(void)
                 {   
                     Analog_MUX_FastSelect(TEMP_MUX);
                     while(!flag);
-                    temp = ADC_Read32();
-                    if(temp > 65535)    temp = 65535;
-                    if(temp < 0)        temp = 0;
-                    avg_temp = avg_temp + temp;
+                    get_temp();
                     flag = 0;
                     i++;   
                 }  
@@ -118,10 +114,7 @@ int main(void)
                 {   
                     Analog_MUX_FastSelect(LDR_MUX);
                     while(!flag);
-                    ldr = ADC_Read32();
-                    if(ldr > 65535)    ldr = 65535;
-                    if(ldr < 0)       ldr = 0;
-                    avg_ldr = avg_ldr + ldr;
+                    get_ldr();
                     flag = 0;
                     i++;   
                 }  
@@ -144,15 +137,9 @@ int main(void)
                 {
                     Analog_MUX_FastSelect(LDR_MUX);
                     while(!flag);
-                    ldr = ADC_Read32();
-                    if(ldr > 65535)     ldr = 65535;
-                    if(ldr < 0)         ldr = 0;
-                    avg_ldr = avg_ldr + ldr;
+                    get_ldr();
                     Analog_MUX_FastSelect(TEMP_MUX);
-                    temp = ADC_Read32();
-                    if(temp > 65535)    temp = 65535;
-                    if(temp < 0)        temp = 0;
-                    avg_temp = avg_temp + temp;
+                    get_temp();
                     flag = 0;
                     i++;
                 }

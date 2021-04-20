@@ -23,6 +23,24 @@
         
     }
 
+    void get_temp()
+    {
+        temp = ADC_Read32();
+        if(temp > 65535)    temp = 65535;
+        if(temp < 0)        temp = 0;
+        avg_temp = avg_temp + temp;
+    }
+    
+    
+    void get_ldr()
+    {
+        ldr = ADC_Read32();
+        if(ldr > 65535)    ldr = 65535;
+        if(ldr < 0)       ldr = 0;
+        avg_ldr = avg_ldr + ldr;
+    }
+    
+    
 
     void SetBuffer(int32 temp, int32 light){ 
         
