@@ -13,8 +13,6 @@
 
 #define LDR_MUX 0x00
 #define TEMP_MUX 0x01
-//#define HEADER 0xA0 //I don't think we need header and tail in the buffer with i2c protocol
-//#define TAIL 0xC0
 #define START 0
 #define DEBUGGING   // For debug purposes only, comment this line in the final commit
 
@@ -23,7 +21,7 @@ uint8_t nSamp, define_status;
 int32 ldr = 0, temp = 0, avg_ldr = 0, avg_temp = 0;
 char message[25] = {"\0"};
 
-int i = 0, numSamp, transmit_flag = 0;
+int i = 0, numSamp;
 
 int main(void)
 {
@@ -46,48 +44,20 @@ int main(void)
     
     EZI2C_SetBuffer1(SLAVE_BUFFER_SIZE, SLAVE_BUFFER_RW, SlaveBuffer);
     
-    //UART_Start();
-   
-    //UART
-    /*DataBuffer[0] = HEADER;
-    DataBuffer[TRANSMIT_BUFFER_SIZE-1] = TAIL;
-    UART_PutString("\f");*/
-    
-    
+    UART_Start();   
     
     for(;;)
     {
         /*###############*/
         /*  IF SOLUTION  */
         /*###############*/
-        //numSamp = SlaveBuffer[0] & 0b00111100;
-        
-        nSamp = SlaveBuffer[0] & 0b00111100;  // Updating numSamp via W on control register 0
-        switch(nSamp){
-            case 0b00000000:    define_status = DEVICE_STOPPED;    break;
-            case 0b00000100:    numSamp = 1;    break;
-            case 0b00001000:    numSamp = 2;    break;
-            case 0b00001100:    numSamp = 3;    break;
-            case 0b00010000:    numSamp = 4;    break;
-            case 0b00010100:    numSamp = 5;    break;
-            case 0b00011000:    numSamp = 6;    break;
-            case 0b00011100:    numSamp = 7;    break;
-            case 0b00100000:    numSamp = 8;    break;
-            case 0b00100100:    numSamp = 9;    break;
-            case 0b00101000:    numSamp = 10;   break;
-            case 0b00101100:    numSamp = 11;   break;
-            case 0b00110000:    numSamp = 12;   break;
-            case 0b00110100:    numSamp = 13;   break;
-            case 0b00111000:    numSamp = 14;   break;
-            case 0b00111100:    numSamp = 15;   break;
-            default:                            break;
-        }
         
         if(i == START)
         {
             /* Initialising variables for average computing each time the counter is reset*/
             avg_ldr = 0;
             avg_temp = 0;
+            numSamp = (SlaveBuffer[0] & 0b00111100) >> 2;
         }
         
         /* for loop, reading numSamp samples from the ADC:
@@ -123,10 +93,8 @@ int main(void)
                 else if(i == numSamp)
                 {   
                     avg_temp = avg_temp / numSamp;
-                    //avg_temp = ADC_CountsTo_mVolts(avg_temp);
-                      
+                    avg_temp = ADC_CountsTo_mVolts(avg_temp);
                     SetBuffer(avg_temp, avg_ldr);  
-                    // i have to write 0 on the other ones? --> I have implemented SetBuffer in order to do that
                     i=0;
                 }    
                 break;
@@ -135,7 +103,6 @@ int main(void)
             case CHANN_LDR:
                 Pin_LED_Write(LED_OFF);
                 start();
-                UART_PutChar(numSamp);
                 if(i < numSamp)
                 {   
                     Analog_MUX_FastSelect(LDR_MUX);
@@ -150,10 +117,8 @@ int main(void)
                 
                 else if(i == numSamp)
                 {   
-                    transmit_flag = 1;
                     avg_ldr = avg_ldr / numSamp;
-                    //avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
-                      
+                    avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
                     SetBuffer(avg_temp, avg_ldr);  
                     i=0;
                 } 
@@ -188,8 +153,8 @@ int main(void)
                     avg_temp = avg_temp / numSamp;
                     
                     /* Convertion to mV */
-                    //avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
-                    //avg_temp = ADC_CountsTo_mVolts(avg_temp);
+                    avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
+                    avg_temp = ADC_CountsTo_mVolts(avg_temp);
                     
                     /*  Use these following lines if you wanna monitor the sensors using Bridge Control Panel
                             rx8 [h=A0] @1ldr @0ldr @1temp @0temp [t=C0], using 2 int variables ldr and temp
@@ -197,23 +162,7 @@ int main(void)
                     */
                     SetBuffer(avg_temp, avg_ldr);
                      
-                    i=0;
-                     
-                        
-                /* UART communication for debugging */
-                #ifdef DEBUGGING
-                    if(transmit_flag){
-                    
-                    /*  Use these 2 lines if you wanna monitor the sensors using CoolTerm
-                        Bit rate 57600
-                    */
-                    sprintf(message,"Temp: %ld mV; LDR: %ld mV\r\n",avg_temp,avg_ldr);
-                    UART_PutString(message);
-                    }
-                   // UART_PutArray(SlaveBuffer,TRANSMIT_BUFFER_SIZE);
-
-                #endif
-         
+                    i=0;         
                 }
                 break;
                 
@@ -221,6 +170,19 @@ int main(void)
             default:
                 break;
         }
+        /* UART communication for debugging */
+        #ifdef DEBUGGING
+            if(i == 0)
+            {
+                /*  Use these 2 lines if you wanna monitor the sensors using CoolTerm
+                    Bit rate 57600
+                */
+                sprintf(message,"Temp: %ld mV; LDR: %ld mV\r\n",avg_temp,avg_ldr);
+                UART_PutString(message);
+                
+               // UART_PutArray(SlaveBuffer,TRANSMIT_BUFFER_SIZE);
+           }
+        #endif
     }
 }
 
