@@ -12,16 +12,13 @@
     #include "project.h"
     
     //UART
-    /*  #define BYTES_TO_SEND 4
-    #define TRANSMIT_BUFFER_SIZE 1+BYTES_TO_SEND+1 
-    uint8 DataBuffer[TRANSMIT_BUFFER_SIZE];
-    */  
-    
-    //volatile uint8_t define_status;
+    #ifdef DEBUGGING
+        #define BYTES_TO_SEND 4
+        #define TRANSMIT_BUFFER_SIZE 1+BYTES_TO_SEND+1 
+        uint8 DataBuffer[TRANSMIT_BUFFER_SIZE];  
+    #endif
     
     CY_ISR_PROTO(Custom_ISR_ADC);
-    
-
     
 #endif
 

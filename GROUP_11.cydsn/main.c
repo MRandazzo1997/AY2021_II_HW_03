@@ -14,11 +14,10 @@
 #define LDR_MUX 0x00
 #define TEMP_MUX 0x01
 #define START 0
-#define DEBUGGING   // For debug purposes only, comment this line in the final commit
+//#define DEBUGGING   // For debug purposes only, comment this line in the final commit
 
 volatile int flag = 0;
-uint8_t nSamp, define_status;
-char message[25] = {"\0"};
+uint8_t define_status;
 
 int i = 0, numSamp;
 
@@ -30,7 +29,7 @@ int main(void)
     /* Initialization/startup code */
     isr_Timer_StartEx(Custom_ISR_ADC);
     start();
-    //Timer_Start();
+    Timer_Start();
     EZI2C_Start();
     
     Analog_MUX_Init();
@@ -43,14 +42,13 @@ int main(void)
     
     EZI2C_SetBuffer1(SLAVE_BUFFER_SIZE, SLAVE_BUFFER_RW, SlaveBuffer);
     
-    UART_Start();   
+    #ifdef DEBUGGING
+        char message [25] = {"\0"};
+        UART_Start();
+    #endif
     
     for(;;)
     {
-        /*###############*/
-        /*  IF SOLUTION  */
-        /*###############*/
-        
         if(i == START || Timer_ReadPeriod() == 0)
         {
             /* Initialising variables for average computing each time the counter is reset*/
@@ -69,14 +67,20 @@ int main(void)
             Timer_Start();
         }
         
-        /* for loop, reading numSamp samples from the ADC:
-            1. Setting the MUX channel (temp sensor)
-            2. Waiting the timer before reading the value (4 ms)
-            3. Reading the temp and checking it to be between 0 and 65535
-            4. Summing temp with its previous values
-            5. Repeating the procedure with the ldr sensor (without point 2.)
-            6. Put the timer flag to 0 -> wait 4 ms before a new ADC reading
-            7. Increment the sample counter
+        /* Reading numSamp samples from the ADC:
+            0. Check the value of define_status (control register 0, bits 0 and 1)
+            case 00 -> stop
+            case 01 or 11: (case 11 -> LED_ON)
+                1. Set the MUX channel (temp sensor)
+                2. Wait the timer before reading the value (4 ms)
+                3. Read the temp and check it to be between 0 and 65535
+                4. Sum temp with its previous values and save the avg in I2C bytes
+                   5 (MSB) and 6 (LSB)
+            case 10 or 11:
+                5. Same procedure with the ldr sensor (without point 2.)
+            6. Put the timer flag to 0 -> wait 4 ms before a new ADC reading and save
+               the avg in I2C bytes 3 (MSB) and 4 (LSB)
+            7. Reinitialise the counter i to 0
         */ 
         define_status = (SlaveBuffer[0] & 0b00000011);
         switch (define_status){   //to be implemented how to write register 1 and 2
@@ -168,6 +172,7 @@ int main(void)
             default:
                 break;
         }
+        
         /* UART communication for debugging */
         #ifdef DEBUGGING
             if(i == 0)
@@ -178,13 +183,11 @@ int main(void)
                 sprintf(message,"Temp: %ld mV; LDR: %ld mV\r\n",avg_temp,avg_ldr);
                 UART_PutString(message);
                 
-               // UART_PutArray(SlaveBuffer,TRANSMIT_BUFFER_SIZE);
+                // Use this line if you wanna monitor the sensors using BCP
+                // UART_PutArray(DataBuffer,TRANSMIT_BUFFER_SIZE);
            }
         #endif
     }
 }
-
-
-
 
 /* [] END OF FILE */
