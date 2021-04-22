@@ -12,7 +12,7 @@
     #include "project.h"
     
     #define TRANSMISSION_RATE 50
-    #define TIMER_CK 50000
+    #define TIMER_CK 205000
     
     #define SLAVE_BUFFER_SIZE 7
     #define WHO_AM_I  0xBC
