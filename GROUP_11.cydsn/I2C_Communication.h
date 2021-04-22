@@ -6,13 +6,24 @@
 *   \ Group 11
 */
 
+
+/*
+*
+* Header for I2C Communication
+*
+*/
+
+
 #ifndef __I2C_COMMUNICATION_H__
     #define __I2C_COMMUNICATION_H__
     
     #include "project.h"
     
+    
     #define TRANSMISSION_RATE 50
+    //Timer Clock calculated as 50*16*256 (required transmission rate)*(max number of samples)*(timer period)
     #define TIMER_CK 205000
+    
     
     #define SLAVE_BUFFER_SIZE 7
     #define WHO_AM_I  0xBC
@@ -29,13 +40,19 @@
     #define LED_ON        1
     #define LED_OFF       0
     
+    
     int32 ldr,temp, avg_ldr, avg_temp;
     
     
+    //function which will stop ADC and LED
     void stop();
+    //function which will start ADC
     void start();
+    //function which will sample the temperature sensor
     void get_temp();
+    //function which will sample the photoresistor 
     void get_ldr();
+    //function which will set the adresses of the Slave Buffer from 3 to 6
     void SetBuffer(int32 temp, int32 light);
     
     

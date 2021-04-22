@@ -5,24 +5,35 @@
 *   \ Assignment 03 - Analog sampling and I2C communication
 *   \ Group 11
 */
-    
+
+
+/*
+*
+* Source file for I2C Communication
+*
+*/
+
     #include "project.h"
     #include "I2C_Communication.h"
     
+    
+    //function which will start ADC
     void start()
     {
         ADC_Start();
         ADC_StartConvert();
-       
     }
 
+    
+    //function which will stop ADC and LED
     void stop()
     {
         ADC_Stop();
-        Pin_LED_Write(LED_OFF);
-        
+        Pin_LED_Write(LED_OFF); 
     }
 
+    
+    //function which will sample the temperature sensor, summing up the aquired data in avg_temp
     void get_temp()
     {
         temp = ADC_Read32();
@@ -32,6 +43,7 @@
     }
     
     
+    //function which will sample the photoresistor, summing up the aquired data in avg_ldr
     void get_ldr()
     {
         ldr = ADC_Read32();
@@ -41,9 +53,8 @@
     }
     
     
-
-    void SetBuffer(int32 temp, int32 light){ 
-        
+    //function which will set the adresses of the Slave Buffer from 3 to 6, containing the sampled data or 0 if i'm not sampling that channel
+    void SetBuffer(int32 temp, int32 light){
         /*Convert int32 to char*/
         if(light != 0)
         {
@@ -64,8 +75,7 @@
         {
             SlaveBuffer[5] = 0;
             SlaveBuffer[6] = 0;
-        }
-        
+        }  
     }
 
 /* [] END OF FILE */

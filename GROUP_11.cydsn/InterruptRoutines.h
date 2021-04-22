@@ -6,6 +6,13 @@
 *   \ Group 11
 */
 
+
+/*
+*
+* Header file for interrupt routines
+*
+*/
+
 #ifndef __INTERRUPT_ROUTINES_H__
     
     #define __INTERRUPT_ROUTINES_H__
@@ -13,7 +20,7 @@
     #include "stdio.h"
     #include "math.h"
     
-    //UART
+    //UART define 
     #ifdef DEBUGGING
         #define BYTES_TO_SEND 4
         #define TRANSMIT_BUFFER_SIZE 1+BYTES_TO_SEND+1 

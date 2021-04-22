@@ -6,6 +6,13 @@
 *   \ Group 11
 */
 
+
+/*
+*
+* Source file for interrupt routines
+*
+*/
+
 #include "InterruptRoutines.h"
 #include "I2C_Communication.h"
 #include "project.h"
