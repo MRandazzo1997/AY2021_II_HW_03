@@ -18,6 +18,7 @@
 
 volatile int flag = 0;
 uint8_t define_status;
+uint16_t divider = 1; //*
 
 int i = 0, numSamp;
 
@@ -65,6 +66,8 @@ int main(void)
             CyDelay(1);
             Control_Reg_Reset_Write(0);
             Timer_Start();
+            divider = TIMER_CK/(numSamp*Timer_ReadPeriod()*TRANSMISSION_RATE); //*
+            Timer_CLK_SetDivider(divider); //*
         }
         
         /* Reading numSamp samples from the ADC:
