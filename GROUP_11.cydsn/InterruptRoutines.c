@@ -7,18 +7,24 @@
 */
 
 #include "InterruptRoutines.h"
+#include "I2C_Communication.h"
 #include "project.h"
 
-extern volatile int flag;
+extern volatile int flag, numSamp;
+uint16_t count = 0;
+float X;
 
 CY_ISR(Custom_ISR_ADC)
 {
     Timer_ReadStatusRegister();
-    
-    /* Everytime the timer ISR occurs (4 ms), the flag is put to 1
-       while the ADC reading is computed in the main.c file
-    */
-    flag = 1;
+    // per_isr*numSamp * X = 20 ms
+    if(count == 0)
+        X = TIMER_CK/(TRANSMISSION_RATE*Timer_ReadPeriod()*numSamp);
+    count++;
+    if(count >= X){
+        flag = 1;
+        count = 0;
+    }
 }
 
 /* [] END OF FILE */
