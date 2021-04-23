@@ -18,26 +18,14 @@
 #include "project.h"
 
 
-extern volatile int flag, numSamp;
-uint16_t count = 0;
-float X;
-
+extern volatile int flag;
 
 CY_ISR(Custom_ISR_ADC)
 {
-    Timer_ReadStatusRegister();
-    // per_isr*numSamp * X = 20 ms
-    if(count == 0)
-    {
-        X = TIMER_CK/(TRANSMISSION_RATE*Timer_ReadPeriod()*numSamp);
-        count++;
-    }
+      Timer_ReadStatusRegister();
     
-    if(count >= X)
-    {
-        flag = 1;              
-        count = 0; 
-    }
+    //Everytime the timer ISR occurs (4 ms), flag is put to 1
+    flag = 1;
 }
 
 /* [] END OF FILE */
