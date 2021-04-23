@@ -17,8 +17,7 @@
     
     #define __INTERRUPT_ROUTINES_H__
     #include "project.h"
-    #include "stdio.h"
-    #include "math.h"
+    
     
     //UART define 
     #ifdef DEBUGGING

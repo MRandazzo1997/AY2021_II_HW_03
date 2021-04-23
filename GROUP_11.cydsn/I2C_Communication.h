@@ -9,7 +9,7 @@
 
 /*
 *
-* Header for I2C Communication
+* Header file for I2C Communication
 *
 */
 

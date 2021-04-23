@@ -17,20 +17,26 @@
 #include "I2C_Communication.h"
 #include "project.h"
 
+
 extern volatile int flag, numSamp;
 uint16_t count = 0;
 float X;
+
 
 CY_ISR(Custom_ISR_ADC)
 {
     Timer_ReadStatusRegister();
     // per_isr*numSamp * X = 20 ms
     if(count == 0)
+    {
         X = TIMER_CK/(TRANSMISSION_RATE*Timer_ReadPeriod()*numSamp);
-    count++;
-    if(count >= X){
-        flag = 1;
-        count = 0;
+        count++;
+    }
+    
+    if(count >= X)
+    {
+        flag = 1;              
+        count = 0; 
     }
 }
 

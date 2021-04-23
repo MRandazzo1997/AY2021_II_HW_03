@@ -6,6 +6,17 @@
 *   \ Group 11
 */
 
+
+/*
+ * Source file for main.
+ * 
+ * Analog sampling and I2C communication project - CY8CKIT-059 KIT - See TopDesign for more info on the hardware connections/settings.
+ * This project can be used to sample two analog sensors using a single 16-bit Delta-Sigma ADC.
+ * The communication has been implemented with an I2C Slave. The data can be visualized plottig the two signals through Bridge Control Panel.
+ *
+*/
+
+
 #include "project.h"
 #include "InterruptRoutines.h"
 #include "I2C_Communication.h"
@@ -14,12 +25,10 @@
 #define LDR_MUX 0x00
 #define TEMP_MUX 0x01
 #define START 0
-//#define DEBUGGING   // For debug purposes only, comment this line in the final commit
+//#define DEBUGGING   // For debug purposes only
 
 volatile int flag = 0;
 uint8_t define_status;
-uint16_t divider = 1; //*
-
 int i = 0;
 volatile int numSamp;
 
@@ -27,139 +36,126 @@ int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
    
-    
     /* Initialization/startup code */
-    isr_Timer_StartEx(Custom_ISR_ADC);
-    start();
-    Timer_Start();
-    EZI2C_Start();
     
+    // Start ISR with custom function
+    isr_Timer_StartEx(Custom_ISR_ADC);
+    //Start ADC 
+    start();
+    //Start timer 
+    Timer_Start();
+    //Start EZI2C  
+    EZI2C_Start();
+    //Start MUX
     Analog_MUX_Init();
     Analog_MUX_Start();
     
+    // Initialize slave buffer
     SlaveBuffer[0] = 0x00;
     SlaveBuffer[1] =0x00;
     SlaveBuffer[2] = WHO_AM_I;
-    SetBuffer(0,0);  //changed because i cant't define them 0 in communication.h or it gives me 1 exit status 
+    SetBuffer(0,0);  
     
+    //Set the buffer size, how many bytes are writable in the beginning of the buffer, and the buffer pointer
     EZI2C_SetBuffer1(SLAVE_BUFFER_SIZE, SLAVE_BUFFER_RW, SlaveBuffer);
     
+    /* UART start for debugging */
     #ifdef DEBUGGING
         char message [25] = {"\0"};
         UART_Start();
     #endif
     
+    
     for(;;)
     {
         if(i == START || Timer_ReadPeriod() == 0)
         {
-            /* Initialising variables for average computing each time the counter is reset*/
+            // Initialising variables for average each time the counter is reset
             avg_ldr = 0;
             avg_temp = 0;
             
-            /*Extract from register1 number of sample to be averaged*/
+            //Extract from register1 number of samples to be averaged
             numSamp = (SlaveBuffer[0] & 0b00111100) >> 2;
+            //If number of samples is equal to 0, stop the device
             if(numSamp == 0)    define_status = DEVICE_STOPPED;
             
-            /*Reset timer and set new period*/
+            //Reset timer and set new period
             Timer_WritePeriod(SlaveBuffer[1]);
             Control_Reg_Reset_Write(1);
             CyDelay(1);
             Control_Reg_Reset_Write(0);
-            Timer_Start();
-            //divider = TIMER_CK/(numSamp*Timer_ReadPeriod()*TRANSMISSION_RATE); //*
-            //Timer_CLK_SetDivider(divider); //*
+            Timer_Start();  
         }
         
-        /* Reading numSamp samples from the ADC:
-            0. Check the value of define_status (control register 0, bits 0 and 1)
-            case 00 -> stop
-            case 01 or 11: (case 11 -> LED_ON)
-                1. Set the MUX channel (temp sensor)
-                2. Wait the timer before reading the value (4 ms)
-                3. Read the temp and check it to be between 0 and 65535
-                4. Sum temp with its previous values and save the avg in I2C bytes
-                   5 (MSB) and 6 (LSB)
-            case 10 or 11:
-                5. Same procedure with the ldr sensor (without point 2.)
-            6. Put the timer flag to 0 -> wait 4 ms before a new ADC reading and save
-               the avg in I2C bytes 3 (MSB) and 4 (LSB)
-            7. Reinitialise the counter i to 0
-        */ 
-        define_status = (SlaveBuffer[0] & 0b00000011);
-        switch (define_status){   //to be implemented how to write register 1 and 2
-            case DEVICE_STOPPED:
-                stop();
+ 
+        define_status = (SlaveBuffer[0] & 0b00000011);           //Check the value of define_status (control register 0, bits 0 and 1)      
+        switch (define_status){   
+            case DEVICE_STOPPED:                                 //Switch to stop device     
+                stop();                                          //Stop ADC and LED
                 break;
+             
                 
-                
-            case CHANN_TEMP:
-                Pin_LED_Write(LED_OFF);
-                start();
-                if(i < numSamp && Timer_ReadPeriod()!=0)
+            case CHANN_TEMP:                                     //Switch to acquiring temperature sensor data
+                Pin_LED_Write(LED_OFF);                          //Stop LED
+                start();                                         //Start ADC and sampling
+                if(i < numSamp && Timer_ReadPeriod()!=0)         
                 {   
-                    Analog_MUX_FastSelect(TEMP_MUX);
+                    Analog_MUX_FastSelect(TEMP_MUX);             //Select the MUX channel
                     while(!flag);
-                    get_temp();
-                    flag = 0;
-                    i++;   
-                }  
-                
-                else if(i == numSamp)
+                    get_temp();                                  //Sample data
+                    flag = 0;                                    //Reset the ISR flag
+                    i++;                                         //Increment number of samples
+                }
+                else if(i == numSamp)                            
                 {   
-                    avg_temp = avg_temp / numSamp;
-                    avg_temp = ADC_CountsTo_mVolts(avg_temp);
-                    SetBuffer(avg_temp, avg_ldr);  
-                    i=0;
+                    avg_temp = avg_temp / numSamp;               //Compute the average of the samples acquired
+                    avg_temp = ADC_CountsTo_mVolts(avg_temp);    //Convert the average in mVolts
+                    SetBuffer(avg_temp, avg_ldr);                //Set the slave buffer according to the average calculated 
+                    i=0;                                         //Reset number of samples
                 }    
                 break;
             
                     
-            case CHANN_LDR:
-                Pin_LED_Write(LED_OFF);
-                start();
-                if(i < numSamp && Timer_ReadPeriod()!=0)
+            case CHANN_LDR:                                       //Switch to acquiring photoresistor data
+                Pin_LED_Write(LED_OFF);                           //Stop LED 
+                start();                                          //Start ADC and sampling
+                if(i < numSamp && Timer_ReadPeriod()!=0)          
                 {   
-                    Analog_MUX_FastSelect(LDR_MUX);
+                    Analog_MUX_FastSelect(LDR_MUX);               //Select the MUX channel
                     while(!flag);
-                    get_ldr();
-                    flag = 0;
-                    i++;   
+                    get_ldr();                                    //Sample data
+                    flag = 0;                                     //Reset the ISR flag
+                    i++;                                          //Increment number of samples
                 }  
-                
                 else if(i == numSamp)
                 {   
-                    avg_ldr = avg_ldr / numSamp;
-                    avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
-                    SetBuffer(avg_temp, avg_ldr);  
-                    i=0;
+                    avg_ldr = avg_ldr / numSamp;                  //Compute the average of the samples acquired
+                    avg_ldr = ADC_CountsTo_mVolts(avg_ldr);       //Convert the average in mVolts
+                    SetBuffer(avg_temp, avg_ldr);                 //Set the slave buffer according to the average calculated 
+                    i=0;                                          //Reset number of samples
                 } 
-                    
                 break;
                 
                     
-            case CHANN_BOTH:        
-                Pin_LED_Write(LED_ON);
-                start();
+            case CHANN_BOTH:                                      //Switch to acquiring both channels
+                Pin_LED_Write(LED_ON);                            //Start LED 
+                start();                                          //Start ADC and sampling
                 if(i < numSamp && Timer_ReadPeriod()!=0)
                 {
-                    Analog_MUX_FastSelect(LDR_MUX);
+                    Analog_MUX_FastSelect(LDR_MUX);               //Select the MUX channels and get the data
                     while(!flag);
                     get_ldr();
                     Analog_MUX_FastSelect(TEMP_MUX);
                     get_temp();
-                    flag = 0;
-                    i++;
-                }
-                else if(i == numSamp)
+                    flag = 0;                                     //Reset the ISR flag
+                    i++;                                          //Increment number of samples
+                }    
+                else if(i == numSamp)                  
                 {
-                    
-                    /* Average calculation using numSamp samples */
-                    avg_ldr = avg_ldr / numSamp;
+                    avg_ldr = avg_ldr / numSamp;                  //Compute the averages of the samples acquired
                     avg_temp = avg_temp / numSamp;
-                    
-                    /* Convertion to mV */
-                    avg_ldr = ADC_CountsTo_mVolts(avg_ldr);
+                 
+                    avg_ldr = ADC_CountsTo_mVolts(avg_ldr);       //Convert the averages in mVolts
                     avg_temp = ADC_CountsTo_mVolts(avg_temp);
                     
                     /*  Use these following lines if you wanna monitor the sensors using Bridge Control Panel
@@ -168,7 +164,7 @@ int main(void)
                     */
                     SetBuffer(avg_temp, avg_ldr);
                     
-                    i=0;         
+                    i=0;                                          //Reset number of samples
                 }
                 break;
                 
@@ -177,6 +173,7 @@ int main(void)
                 break;
         }
         
+        
         /* UART communication for debugging */
         #ifdef DEBUGGING
             if(i == 0)
@@ -184,11 +181,9 @@ int main(void)
                 /*  Use these 2 lines if you wanna monitor the sensors using CoolTerm
                     Bit rate 57600
                 */
+                
                 sprintf(message,"Temp: %ld mV; LDR: %ld mV\r\n",avg_temp,avg_ldr);
                 UART_PutString(message);
-                
-                // Use this line if you wanna monitor the sensors using BCP
-                // UART_PutArray(DataBuffer,TRANSMIT_BUFFER_SIZE);
            }
         #endif
     }

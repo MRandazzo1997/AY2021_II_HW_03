@@ -58,8 +58,8 @@
         /*Convert int32 to char*/
         if(light != 0)
         {
-            SlaveBuffer[4] = light & 0xFF;
-            SlaveBuffer[3] = (light >> 8) & 0xFF;
+            SlaveBuffer[4] = light & 0xFF;          //LSB
+            SlaveBuffer[3] = (light >> 8) & 0xFF;   //MSB
         }
         else
         {
@@ -68,8 +68,8 @@
         }
         if(temp != 0)
         {
-            SlaveBuffer[6] = temp & 0xFF;
-            SlaveBuffer[5] = (temp >> 8) & 0xFF;
+            SlaveBuffer[6] = temp & 0xFF;            //LSB
+            SlaveBuffer[5] = (temp >> 8) & 0xFF;     //MSB
         }
         else
         {
