@@ -20,11 +20,6 @@
     #include "project.h"
     
     
-    #define TRANSMISSION_RATE 50
-    //Timer Clock calculated as 50*16*256 (required transmission rate)*(max number of samples)*(timer period)
-    #define TIMER_CK 205000
-    
-    
     #define SLAVE_BUFFER_SIZE 7
     #define WHO_AM_I  0xBC
     #define SLAVE_BUFFER_RW  2
@@ -41,7 +36,7 @@
     #define LED_OFF       0
     
     
-    int32 ldr,temp, avg_ldr, avg_temp;
+    int32 ldr, temp, avg_ldr, avg_temp;
     
     
     //function which will stop ADC and LED

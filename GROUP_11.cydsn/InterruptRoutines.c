@@ -14,7 +14,6 @@
 */
 
 #include "InterruptRoutines.h"
-#include "I2C_Communication.h"
 #include "project.h"
 
 
@@ -22,9 +21,9 @@ extern volatile int flag;
 
 CY_ISR(Custom_ISR_ADC)
 {
-      Timer_ReadStatusRegister();
+    Timer_ReadStatusRegister();
     
-    //Everytime the timer ISR occurs (4 ms), flag is put to 1
+    //Everytime the timer ISR occurs, flag is put to 1
     flag = 1;
 }
 

@@ -1,5 +1,20 @@
+; I2C slave buffer
+; The WHOAMI is placed at 0x02
+w 08 02 p
+r 08 x p
+; Control register 2 (0x01):
+; it is used for timer frequency setting (from 195 Hz setting 0xff to 25kHz setting 0x01)
 w 08 01 C7 p
+; Control register 1 (0x00):
+; bits 0 and 1 are used to select the MUX connections (00 device stopped, 01 temp, 10 LDR, 11 both)
+; bits 2-5 are used to selcet the number of samples to be averaged for the transmission
+; bits 6 and 7 are reserved
+; Note that selecting both the number of samples and the timer frequency will change the frequency of the transmission
+; Trans_freq = 50 kHz / (tim_count [2 - 256] * n_samp [0* - 15])
+; Trans_freq [13 Hz - 25 kHz]
 w 08 00 17 p
+; These following lines have to be repeated for plotting
+; 0x06 temp LSB, 0x05 temp MSB, 0x04 LDR LSB, 0x03 LDR MSB
 w 08 06 p
 r 08 @0temp p
 w 08 05 p

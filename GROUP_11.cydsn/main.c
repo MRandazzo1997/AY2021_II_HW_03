@@ -20,7 +20,6 @@
 #include "project.h"
 #include "InterruptRoutines.h"
 #include "I2C_Communication.h"
-#include "stdio.h"
 
 #define LDR_MUX 0x00
 #define TEMP_MUX 0x01
@@ -47,14 +46,13 @@ int main(void)
     //Start EZI2C  
     EZI2C_Start();
     //Start MUX
-    Analog_MUX_Init();
     Analog_MUX_Start();
     
     // Initialize slave buffer
     SlaveBuffer[0] = 0x00;
     SlaveBuffer[1] =0x00;
     SlaveBuffer[2] = WHO_AM_I;
-    SetBuffer(0,0);  
+    SetBuffer(0,0);
     
     //Set the buffer size, how many bytes are writable in the beginning of the buffer, and the buffer pointer
     EZI2C_SetBuffer1(SLAVE_BUFFER_SIZE, SLAVE_BUFFER_RW, SlaveBuffer);
@@ -84,7 +82,7 @@ int main(void)
             Control_Reg_Reset_Write(1);
             CyDelay(1);
             Control_Reg_Reset_Write(0);
-            Timer_Start();  
+            Timer_Start();
         }
         
  
@@ -158,10 +156,6 @@ int main(void)
                     avg_ldr = ADC_CountsTo_mVolts(avg_ldr);       //Convert the averages in mVolts
                     avg_temp = ADC_CountsTo_mVolts(avg_temp);
                     
-                    /*  Use these following lines if you wanna monitor the sensors using Bridge Control Panel
-                            rx8 [h=A0] @1ldr @0ldr @1temp @0temp [t=C0], using 2 int variables ldr and temp
-                            Bit rate 57600
-                    */
                     SetBuffer(avg_temp, avg_ldr);
                     
                     i=0;                                          //Reset number of samples
