@@ -1,0 +1,10 @@
+w 08 01 C7 p
+w 08 00 17 p
+w 08 06 p
+r 08 @0temp p
+w 08 05 p
+r 08 @1temp p
+w 08 04 p
+r 08 @0ldr p
+w 08 03 p
+r 08 @1ldr p
