@@ -10,8 +10,9 @@ w 08 01 C7 p
 ; bits 2-5 are used to selcet the number of samples to be averaged for the transmission
 ; bits 6 and 7 are reserved
 ; Note that selecting both the number of samples and the timer frequency will change the frequency of the transmission
-; Trans_freq = 50 kHz / (tim_count [2 - 256] * n_samp [0* - 15])
+; Trans_freq = 50 kHz / (tim_count [2 - 256] * n_samp [0- 15])
 ; Trans_freq [13 Hz - 25 kHz]
+; NOTE if n_samp=0, the device is stopped
 w 08 00 17 p
 ; These following lines have to be repeated for plotting
 ; 0x06 temp LSB, 0x05 temp MSB, 0x04 LDR LSB, 0x03 LDR MSB
